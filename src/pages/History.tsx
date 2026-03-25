@@ -9,7 +9,7 @@ const History = () => {
   useEffect(() => {
     const fetchHistory = async () => {
       try {
-        const res = await fetch("http://localhost:5000/history");
+        const res = await fetch("https://vawashbackend.onrender.com/history");
         const data = await res.json();
         setHistoryData(data);
       } catch {

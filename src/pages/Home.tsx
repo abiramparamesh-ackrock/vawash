@@ -50,7 +50,7 @@ const [partnerCoords, setPartnerCoords] = useState(null);
 
 useEffect(() => {
   const interval = setInterval(async () => {
-    const res = await fetch("http://localhost:5000/partner-location");
+    const res = awaitfetch("https://vawashbackend.onrender.com/partner-location");
     const data = await res.json();
     setPartnerCoords(data);
   }, 5000);
@@ -137,7 +137,7 @@ const handleBook = async () => {
 
 
   try {
-    await fetch("http://localhost:5000/create-ride", {
+    await fetch("https://vawashbackend.onrender.com/create-ride", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
