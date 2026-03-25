@@ -50,7 +50,7 @@ const [partnerCoords, setPartnerCoords] = useState(null);
 
 useEffect(() => {
   const interval = setInterval(async () => {
-    const res = awaitfetch("https://vawashbackend.onrender.com/partner-location");
+    const res = await fetch("https://vawashbackend.onrender.com/partner-location");
     const data = await res.json();
     setPartnerCoords(data);
   }, 5000);
