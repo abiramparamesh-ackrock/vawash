@@ -2,21 +2,81 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Droplets, Eye, EyeOff } from "lucide-react";
+import { Droplets } from "lucide-react";
 import heroImage from "@/assets/hero-bike.jpg";
+
+// 🔥 Firebase
+import { initializeApp } from "firebase/app";
+import { getAuth, RecaptchaVerifier, signInWithPhoneNumber } from "firebase/auth";
+
+// ⚠️ Replace with your Firebase config
+const app = initializeApp({
+  apiKey: "AIzaSyXXXX",
+  authDomain: "vawash.firebaseapp.com",
+});
+
+const auth = getAuth(app);
 
 const Login = () => {
   const navigate = useNavigate();
-  const [isLogin, setIsLogin] = useState(true);
-  const [showPassword, setShowPassword] = useState(false);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [name, setName] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    navigate("/home");
+  const [isLogin, setIsLogin] = useState(true);
+  const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [otp, setOtp] = useState("");
+  const [showOTP, setShowOTP] = useState(false);
+
+  // 📲 Send OTP
+  const sendOTP = async () => {
+    try {
+      const recaptcha = new RecaptchaVerifier(auth, "recaptcha", {});
+
+      const confirmation = await signInWithPhoneNumber(
+        auth,
+        `+91${phone}`,
+        recaptcha
+      );
+
+      (window as any).confirmationResult = confirmation;
+      setShowOTP(true);
+
+    } catch (err) {
+      alert("Failed to send OTP ❌");
+    }
   };
+
+  // ✅ Verify OTP + Login/Signup
+  const verifyOTP = async () => {
+  try {
+    await (window as any).confirmationResult.confirm(otp);
+
+    const url = isLogin ? "/login" : "/signup";
+
+    const res = await fetch(`https://vawashbackend.onrender.com${url}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(
+        isLogin
+          ? { phone } // ✅ login
+          : { name, phone } // ✅ signup
+      ),
+    });
+
+    const user = await res.json();
+
+    // 💾 Save full user (includes name)
+    localStorage.setItem("user", JSON.stringify(user));
+
+    alert(isLogin ? `Welcome back ${user.name} 👋` : "Signup successful ✅");
+
+    navigate("/home");
+
+  } catch {
+    alert("Invalid OTP ❌");
+  }
+};
 
   return (
     <div className="min-h-screen flex flex-col relative overflow-hidden">
@@ -28,110 +88,84 @@ const Login = () => {
 
       {/* Content */}
       <div className="relative z-10 flex flex-col min-h-screen px-6 py-10">
+
         {/* Logo */}
-        <div className="flex flex-col items-center gap-2 mb-8 animate-fade-in">
-          <div className="w-16 h-16 rounded-2xl gradient-primary flex items-center justify-center shadow-lg animate-pulse-glow">
+        <div className="flex flex-col items-center gap-2 mb-8">
+          <div className="w-16 h-16 rounded-2xl gradient-primary flex items-center justify-center shadow-lg">
             <Droplets className="w-9 h-9 text-primary-foreground" />
           </div>
-          <h1 className="text-3xl font-display font-bold text-primary-foreground tracking-tight">
-            VaWash
-          </h1>
-          <p className="text-sm text-primary-foreground/60 font-body">
+          <h1 className="text-3xl font-bold text-primary-foreground">VaWash</h1>
+          <p className="text-sm text-primary-foreground/60">
             Premium Bike Wash Service
           </p>
         </div>
 
-        {/* Form Card */}
+        {/* Form */}
         <div className="flex-1 flex items-center justify-center">
-          <div className="w-full max-w-sm glass-card rounded-2xl p-6 animate-slide-up">
-            <h2 className="text-xl font-display font-semibold text-card-foreground mb-1">
+          <div className="w-full max-w-sm glass-card rounded-2xl p-6">
+
+            <h2 className="text-xl font-semibold mb-2">
               {isLogin ? "Welcome Back" : "Create Account"}
             </h2>
-            <p className="text-sm text-muted-foreground mb-6">
-              {isLogin
-                ? "Sign in to book your next wash"
-                : "Join VaWash for a sparkling ride"}
-            </p>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-4">
+
+              {/* Name (Signup only) */}
               {!isLogin && (
-                <div>
-                  <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    Full Name
-                  </label>
-                  <Input
-                    type="text"
-                    placeholder="John Doe"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    className="mt-1.5 bg-secondary border-border focus:border-primary"
-                  />
-                </div>
-              )}
-
-              <div>
-                <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  Email
-                </label>
                 <Input
-                  type="email"
-                  placeholder="you@example.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="mt-1.5 bg-secondary border-border focus:border-primary"
+                  placeholder="Full Name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
                 />
-              </div>
-
-              <div>
-                <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  Password
-                </label>
-                <div className="relative mt-1.5">
-                  <Input
-                    type={showPassword ? "text" : "password"}
-                    placeholder="••••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="bg-secondary border-border focus:border-primary pr-10"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </button>
-                </div>
-              </div>
-
-              {isLogin && (
-                <button type="button" className="text-xs text-primary hover:underline">
-                  Forgot password?
-                </button>
               )}
 
-              <Button
-                type="submit"
-                className="w-full gradient-primary text-primary-foreground font-semibold h-12 rounded-xl text-base shadow-lg hover:opacity-90 transition-opacity"
-              >
-                {isLogin ? "Sign In" : "Create Account"}
-              </Button>
-            </form>
+              {/* Phone */}
+              <Input
+                placeholder="Enter Phone Number"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+              />
 
+              {/* OTP */}
+              {showOTP && (
+                <Input
+                  placeholder="Enter OTP"
+                  value={otp}
+                  onChange={(e) => setOtp(e.target.value)}
+                />
+              )}
+
+              {/* Button */}
+              <Button
+                onClick={showOTP ? verifyOTP : sendOTP}
+                className="w-full gradient-primary text-white"
+              >
+                {showOTP ? "Verify OTP" : "Send OTP"}
+              </Button>
+            </div>
+
+            {/* Toggle */}
             <div className="mt-6 text-center">
-              <p className="text-sm text-muted-foreground">
-                {isLogin ? "Don't have an account?" : "Already have an account?"}{" "}
+              <p className="text-sm">
+                {isLogin ? "Don't have an account?" : "Already have an account?"}
                 <button
-                  onClick={() => setIsLogin(!isLogin)}
-                  className="text-primary font-semibold hover:underline"
+                  onClick={() => {
+                    setIsLogin(!isLogin);
+                    setShowOTP(false);
+                  }}
+                  className="text-primary ml-1"
                 >
                   {isLogin ? "Sign Up" : "Sign In"}
                 </button>
               </p>
             </div>
+
           </div>
         </div>
       </div>
+
+      {/* 🔥 Required for Firebase */}
+      <div id="recaptcha"></div>
     </div>
   );
 };
