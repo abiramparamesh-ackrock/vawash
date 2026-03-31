@@ -13,10 +13,45 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+
+  const url = isLogin
+    ? "https://vawashbackend.onrender.com/login"
+    : "https://vawashbackend.onrender.com/signup";
+
+  const bodyData = isLogin
+    ? { phone: email }
+    : { name: name, phone: email };
+
+  console.log("MODE:", isLogin ? "LOGIN" : "SIGNUP");
+
+  try {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(bodyData),
+    });
+
+    if (!res.ok) {
+      const msg = await res.text();
+      alert(msg);
+      return;
+    }
+
+    const user = await res.json();
+
+    // ✅ SAVE PHONE
+    localStorage.setItem("userPhone", user.phone);
+
     navigate("/home");
-  };
+  } catch (err) {
+    alert("Server error");
+  }
+};
+
 
   return (
     <div className="min-h-screen flex flex-col relative overflow-hidden">
@@ -74,8 +109,8 @@ const Login = () => {
                   Email
                 </label>
                 <Input
-                  type="email"
-                  placeholder="you@example.com"
+                  type="text"
+                  placeholder="enter phone number"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="mt-1.5 bg-secondary border-border focus:border-primary"

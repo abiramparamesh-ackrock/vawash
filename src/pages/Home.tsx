@@ -125,7 +125,7 @@ useEffect(() => {
   );
 }, []);
 
-
+const userPhone = localStorage.getItem("userPhone");
 const handleBook = async () => {
   if (!selectedPackage) {
     toast({ title: "Select a package", description: "Please choose a wash package first." });
@@ -148,6 +148,7 @@ const handleBook = async () => {
         location: finalLocation,
         lat: coords?.lat,
         lng: coords?.lng,
+        phone: userPhone // ✅ ADD THIS
       }),
     });
 
