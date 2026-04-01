@@ -47,7 +47,6 @@ const Home = () => {
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
 const [partnerCoords, setPartnerCoords] = useState(null);
 
-
 useEffect(() => {
   const interval = setInterval(async () => {
     const res = await fetch("https://vawashbackend.onrender.com/partner-location");
@@ -58,16 +57,6 @@ useEffect(() => {
   return () => clearInterval(interval);
 }, []);
 
-
-
-// const openMap = () => {
-//   const finalLocation = manualLocation || location;
-
-//   if (!finalLocation || finalLocation === "Detecting...") return;
-
-//   const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(finalLocation)}`;
-//   window.open(url, "_blank");
-// };
 const openMap = () => {
   // ✅ If GPS available → use exact pin
   if (coords) {
@@ -126,6 +115,11 @@ useEffect(() => {
 }, []);
 
 const userPhone = localStorage.getItem("userPhone");
+
+if (!userPhone) {
+  alert("Login again. Phone missing!");
+  return;
+}
 const handleBook = async () => {
   if (!selectedPackage) {
     toast({ title: "Select a package", description: "Please choose a wash package first." });
@@ -135,6 +129,10 @@ const handleBook = async () => {
   const pkg = washPackages.find((p) => p.id === selectedPackage);
   const finalLocation = manualLocation || location;
 
+  const userPhone = localStorage.getItem("userPhone");
+
+  // ✅ ADD THIS LINE HERE
+  console.log("Sending phone:", userPhone);
 
   try {
     await fetch("https://vawashbackend.onrender.com/create-ride", {
@@ -142,14 +140,14 @@ const handleBook = async () => {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        packageName: pkg?.name,
-        price: pkg?.price,
-        location: finalLocation,
-        lat: coords?.lat,
-        lng: coords?.lng,
-        phone: userPhone // ✅ ADD THIS
-      }),
+body: JSON.stringify({
+  packageName: pkg?.name,
+  price: pkg?.price,
+  location: finalLocation,
+  lat: coords?.lat,
+  lng: coords?.lng,
+  phone: String(userPhone), // ✅ FIX
+}),
     });
 
     toast({

@@ -25,7 +25,6 @@ const Login = () => {
     : { name: name, phone: email };
 
   console.log("MODE:", isLogin ? "LOGIN" : "SIGNUP");
-
   try {
     const res = await fetch(url, {
       method: "POST",
