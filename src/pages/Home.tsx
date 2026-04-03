@@ -39,6 +39,8 @@ const washPackages = [
 ];
 
 const Home = () => {
+
+  const [contact, setContact] = useState("");
   const [selectedPackage, setSelectedPackage] = useState<number | null>(null);
   const { toast } = useToast();
   const [manualLocation, setManualLocation] = useState("");
@@ -113,27 +115,20 @@ useEffect(() => {
     }
   );
 }, []);
-
-const userPhone = localStorage.getItem("userPhone");
-
-if (!userPhone) {
-  alert("Login again. Phone missing!");
-  return;
-}
 const handleBook = async () => {
   if (!selectedPackage) {
     toast({ title: "Select a package", description: "Please choose a wash package first." });
     return;
   }
+  if (!contact) {
+  alert("Please enter contact number");
+  return;
+}
 
   const pkg = washPackages.find((p) => p.id === selectedPackage);
   const finalLocation = manualLocation || location;
 
-  const userPhone = localStorage.getItem("userPhone");
-
   // ✅ ADD THIS LINE HERE
-  console.log("Sending phone:", userPhone);
-
   try {
     await fetch("https://vawashbackend.onrender.com/create-ride", {
       method: "POST",
@@ -146,7 +141,8 @@ body: JSON.stringify({
   location: finalLocation,
   lat: coords?.lat,
   lng: coords?.lng,
-  phone: String(userPhone), // ✅ FIX
+  // phone: String(userPhone), // ✅ FIX
+  phone: contact,
 }),
     });
 
@@ -156,6 +152,7 @@ body: JSON.stringify({
     });
 
     setSelectedPackage(null);
+    setContact("");
   } catch (error) {
     toast({
       title: "Error",
@@ -213,7 +210,7 @@ body: JSON.stringify({
   {showManualInput && (
     <input
       type="text"
-      placeholder="Enter your location manually"
+      placeholder="Enter your location manually"      
       value={manualLocation}
 onChange={(e) => {
   setManualLocation(e.target.value);
@@ -227,6 +224,16 @@ onChange={(e) => {
   className="w-full px-4 py-2 rounded-lg text-sm border border-border outline-none"
     />
   )}
+</div>
+{/* ✅ CONTACT INPUT */}
+<div className="mt-2">
+  <input
+    type="text"
+    placeholder="Enter contact number"
+    value={contact}
+    onChange={(e) => setContact(e.target.value)}
+    className="w-full px-4 py-2 rounded-lg text-sm border border-border outline-none"
+  />
 </div>
 
 
